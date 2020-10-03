@@ -47,6 +47,10 @@ func handleGmailSearch(ctx *fasthttp.RequestCtx) {
 		finalValues = gmailApis.SearchForEmail("subject:You've received an eStore Credit", EmailAfterDate.(string)+" 00:00:00")
 	}
 
+	// if SearchQuery.(string) == "StoreCredit" {
+	// 	finalValues = gmailApis.SearchForEmail("subject:You've received an eStore Credit", EmailAfterDate.(string)+" 00:00:00")
+	// }
+
 	loc, _ := time.LoadLocation("America/Bogota")
 	currentTime := time.Now().In(loc)
 	CSVName := "StoreCreditCSV_" + currentTime.Format("2006-01-02 15:04:05") + ".csv"
@@ -56,7 +60,7 @@ func handleGmailSearch(ctx *fasthttp.RequestCtx) {
 	}
 	writer := csv.NewWriter(f)
 	defer writer.Flush()
-	header := []string{"StoreCredit_Refresh_time", "Email Received Timestamp", "Store Credit Amount", "Order Number"}
+	header := []string{"StoreCredit_Refresh_time", "Email Received Timestamp", "Store Credit Amount", "Store Credit Link", "To Email Address"}
 	writer.Write(header)
 	stringfinalValues := make([][]string, len(finalValues)+5)
 	i := 0

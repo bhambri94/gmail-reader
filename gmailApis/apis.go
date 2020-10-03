@@ -127,7 +127,8 @@ func SearchForEmail(SearchQuery string, EmailsAfterTime string) [][]interface{} 
 	}
 
 	user := "me"
-	r, err := gmailService.Users.Messages.List(user).Q(SearchQuery).Do()
+	var r *gmail.ListMessagesResponse
+	r, err = gmailService.Users.Messages.List(user).Q(SearchQuery).MaxResults(5000).Do()
 	if err != nil {
 		fmt.Println("Unable to retrieve Message with Search Query")
 		return nil
@@ -137,6 +138,7 @@ func SearchForEmail(SearchQuery string, EmailsAfterTime string) [][]interface{} 
 		fmt.Println("No Message found.")
 		return nil
 	}
+
 	fmt.Println("Iterating over Messages:")
 	for _, l := range r.Messages {
 		msg, err := gmailService.Users.Messages.Get(user, l.Id).Format("full").Do()
@@ -154,12 +156,22 @@ func SearchForEmail(SearchQuery string, EmailsAfterTime string) [][]interface{} 
 			fmt.Println(t.Unix())
 			break
 		}
+		Header := msg.Payload.Headers
+		EmailReceiver := ""
+		for _, s := range Header {
+			if s.Name == "Delivered-To" {
+				EmailReceiver = s.Value
+			}
+		}
+
 		Output := msg.Payload.Parts[0].Body.Data
 		Output = strings.Replace(Output, "-", "+", -1)
 		Output = strings.Replace(Output, "_", "/", -1)
 		emailBody := DecodeB64(Output)
-		emailTemplates.GetStoreCreditReport(emailBody, CentralTime)
+		emailTemplates.GetStoreCreditReport(emailBody, CentralTime, EmailReceiver)
+
 	}
+
 	return emailTemplates.GetStoreCreditFinalValues()
 }
 
