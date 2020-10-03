@@ -159,7 +159,7 @@ func SearchForEmail(SearchQuery string, EmailsAfterTime string) [][]interface{} 
 		Header := msg.Payload.Headers
 		EmailReceiver := ""
 		for _, s := range Header {
-			if s.Name == "Delivered-To" {
+			if s.Name == "To" {
 				EmailReceiver = s.Value
 			}
 		}
