@@ -161,12 +161,11 @@ func SearchForEmail(SearchQuery string, EmailsAfterTime string) [][]interface{} 
 		for _, s := range Header {
 			if s.Name == "To" {
 				EmailReceiver = s.Value
-				if EmailReceiver == "tuanshivam@gmail.com" {
-					continue
-				}
 			}
 		}
-
+		if EmailReceiver == "tuanshivam@gmail.com" {
+			continue
+		}
 		Output := msg.Payload.Parts[0].Body.Data
 		Output = strings.Replace(Output, "-", "+", -1)
 		Output = strings.Replace(Output, "_", "/", -1)
@@ -224,10 +223,10 @@ func SearchForEmailDynamic(SearchQuery string, EmailsAfterTime string) [][]inter
 		for _, s := range Header {
 			if s.Name == "To" {
 				EmailReceiver = s.Value
-				if EmailReceiver == "tuanshivam@gmail.com" {
-					continue
-				}
 			}
+		}
+		if EmailReceiver == "tuanshivam@gmail.com" {
+			continue
 		}
 		if len(msg.Payload.Parts) > 0 {
 			Output := msg.Payload.Parts[0].Body.Data
