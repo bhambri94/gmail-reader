@@ -1,7 +1,6 @@
 package emailTemplates
 
 import (
-	"fmt"
 	"strings"
 	"time"
 	"unicode"
@@ -94,10 +93,8 @@ func GetCreditAppliedReport(creditEmail string, InternalDate string, EmailReceiv
 
 	CreditAmountStartIndex := strings.Index(creditEmail, "credit has been")
 	if CreditAmountStartIndex != -1 {
-		fmt.Println(CreditAmountStartIndex)
 		CreditAmountEndIndex := strings.Index(creditEmail[CreditAmountStartIndex-15:CreditAmountStartIndex], "A")
 		if CreditAmountEndIndex != -1 {
-			fmt.Println(CreditAmountEndIndex)
 			CreditAmount = creditEmail[CreditAmountStartIndex-15 : CreditAmountStartIndex+CreditAmountEndIndex+10]
 			CreditAmount = strings.Replace(CreditAmount, "credit has been", "", -1)
 			CreditAmount = strings.Replace(CreditAmount, "A", "", -1)
