@@ -7,7 +7,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/bhambri94/gmail-reader/configs"
 	"github.com/bhambri94/gmail-reader/gmailApis"
 	"github.com/buaazp/fasthttprouter"
 	"github.com/valyala/fasthttp"
@@ -33,7 +32,6 @@ http://localhost:7004/v1/gmail-reader/query='StoreCredit'/afterDate='2020-08-20'
 */
 func handleGmailSearch(ctx *fasthttp.RequestCtx) {
 	sugar.Infof("calling gmail reader api!")
-	configs.SetConfig()
 	SearchQuery := ctx.UserValue("query")
 	if SearchQuery != nil {
 		sugar.Infof("SearchQuery is := " + SearchQuery.(string))
