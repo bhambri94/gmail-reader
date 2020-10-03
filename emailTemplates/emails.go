@@ -118,11 +118,6 @@ func GetCreditAppliedReport(creditEmail string, InternalDate string, EmailReceiv
 	row = append(row, CreditAmount)
 	row = append(row, StoreSKU)
 	row = append(row, EmailReceiver)
-	fmt.Println(stripSpaces(OrderNumber))
-	fmt.Println(stripSpaces(OrderDate))
-	fmt.Println(stripSpaces(InternetNumber))
-	fmt.Println(stripSpaces(CreditAmount))
-	fmt.Println(stripSpaces(StoreSKU))
 
 	creditAppliedFinalValues = append(creditAppliedFinalValues, row)
 }
