@@ -198,6 +198,7 @@ func SearchForEmailDynamic(SearchQuery string, EmailsAfterTime string) [][]inter
 	}
 	TillTimeUnix := TillTime.Unix()
 	emailTemplates.CreditAppliedFlushFinalValues()
+	emailTemplates.ShippingTrackerFlushFinalValues()
 
 	if gmailService == nil {
 		gmailService = getClient()
@@ -242,6 +243,7 @@ func SearchForEmailDynamic(SearchQuery string, EmailsAfterTime string) [][]inter
 			t = t.In(loc)
 			CentralTime := t.Format("2006-01-02 15:04:05")
 			if t.Unix() < TillTimeUnix {
+				BreakAllLoops = true
 				break
 			}
 			Header := msg.Payload.Headers
@@ -265,14 +267,25 @@ func SearchForEmailDynamic(SearchQuery string, EmailsAfterTime string) [][]inter
 				Output = strings.Replace(Output, "-", "+", -1)
 				Output = strings.Replace(Output, "_", "/", -1)
 				emailBody := DecodeB64(Output)
-				emailTemplates.GetCreditAppliedReport(emailBody, CentralTime, EmailReceiver)
+				if strings.Contains(SearchQuery, "Credit Applied") {
+					emailTemplates.GetCreditAppliedReport(emailBody, CentralTime, EmailReceiver)
+				} else if strings.Contains(SearchQuery, "just shipped") {
+					emailTemplates.GetShippingTrackerReport(emailBody, CentralTime, EmailReceiver)
+				}
+
 			}
 		}
 		if BreakAllLoops {
 			break
 		}
 	}
-	return emailTemplates.GetCreditAppliedFinalValues()
+
+	if strings.Contains(SearchQuery, "Credit Applied") {
+		return emailTemplates.GetCreditAppliedFinalValues()
+	} else if strings.Contains(SearchQuery, "just shipped") {
+		return emailTemplates.GetShippingTrackerFinalValues()
+	}
+	return nil
 }
 
 func DecodeB64(message string) string {

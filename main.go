@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/bhambri94/gmail-reader/gmailApis"
@@ -31,6 +32,7 @@ func main() {
 /*
 http://localhost:7004/v1/gmail-reader/query='StoreCredit'/afterDate='2020-10-04'
 http://localhost:7004/v1/gmail-reader/search='subject:Credit Applied to Order'/afterDate='2020-08-20'
+http://localhost:7004/v1/gmail-reader/search='subject:Your order just shipped'/afterDate='2020-07-20'
 */
 
 func handleDynamicGmailSearch(ctx *fasthttp.RequestCtx) {
@@ -47,17 +49,24 @@ func handleDynamicGmailSearch(ctx *fasthttp.RequestCtx) {
 	}
 	var finalValues [][]interface{}
 	finalValues = gmailApis.SearchForEmailDynamic(SearchQuery.(string), EmailAfterDate.(string)+" 00:00:00")
-	// "subject:You've received an eStore Credit"
 	loc, _ := time.LoadLocation("America/Bogota")
 	currentTime := time.Now().In(loc)
-	CSVName := "StoreCreditCSV_" + currentTime.Format("2006-01-02 15:04:05") + ".csv"
+	var header []string
+	var CSVName string
+	if strings.Contains(SearchQuery.(string), "Credit Applied") {
+		header = []string{"EmailWorkflow_Refresh_time", "Internet Number", "Order Number", "Amount Credit", "To Email Address", "Email Received Timestamp", "Order Date", "Store SKU"}
+		CSVName = "StoreCreditCSV_" + currentTime.Format("2006-01-02 15:04:05") + ".csv"
+	} else if strings.Contains(SearchQuery.(string), "just shipped") {
+		header = []string{"EmailWorkflow_Refresh_time", "Internet Number", "Order Number", "Amount Credit", "To Email Address", "Tracking Number", "Carrier", "Email Received Timestamp", "Order Date", "Store SKU"}
+		CSVName = "ShippedOrdersCSV_" + currentTime.Format("2006-01-02 15:04:05") + ".csv"
+	}
 	f, err := os.Create(CSVName)
 	if err != nil {
 		log.Fatal(err)
 	}
 	writer := csv.NewWriter(f)
 	defer writer.Flush()
-	header := []string{"EmailWorkflow_Refresh_time", "Internet Number", "Order Number", "Amount Credit", "To Email Address", "Email Received Timestamp", "Order Date", "Store SKU"}
+
 	writer.Write(header)
 	stringfinalValues := make([][]string, len(finalValues)+5)
 	i := 0
