@@ -128,49 +128,64 @@ func SearchForEmail(SearchQuery string, EmailsAfterTime string) [][]interface{} 
 
 	user := "me"
 	var r *gmail.ListMessagesResponse
-	r, err = gmailService.Users.Messages.List(user).Q(SearchQuery).MaxResults(5000).Do()
-	if err != nil {
-		fmt.Println("Unable to retrieve Message with Search Query")
-		return nil
-	}
-	fmt.Println(len(r.Messages))
-	if len(r.Messages) == 0 {
-		fmt.Println("No Message found.")
-		return nil
-	}
-
-	fmt.Println("Iterating over Messages:")
-	for _, l := range r.Messages {
-		msg, err := gmailService.Users.Messages.Get(user, l.Id).Format("full").Do()
-		if err != nil {
-			log.Fatalf("Unable to retrieve Message with Search Query: %v", err)
+	NextToken := "First"
+	BreakAllLoops := false
+	for NextToken != "" {
+		if NextToken == "First" {
+			r, err = gmailService.Users.Messages.List(user).Q(SearchQuery).MaxResults(500).Do()
+			if err != nil {
+				fmt.Println("Unable to retrieve Message with Search Query")
+				return nil
+			}
+			NextToken = r.NextPageToken
+		} else {
+			r, err = gmailService.Users.Messages.List(user).Q(SearchQuery).MaxResults(500).PageToken(NextToken).Do()
+			if err != nil {
+				fmt.Println("Unable to retrieve Message with Search Query")
+				return nil
+			}
+			NextToken = r.NextPageToken
 		}
-		EmailTimings := msg.InternalDate / 1000
-		t := time.Unix(EmailTimings, 0)
-		if err != nil {
-			fmt.Println(err)
-		}
-		t = t.In(loc)
-		CentralTime := t.Format("2006-01-02 15:04:05")
-		if t.Unix() < TillTimeUnix {
-			fmt.Println(t.Unix())
+		if len(r.Messages) == 0 {
+			fmt.Println("No Message found.")
 			break
 		}
-		Header := msg.Payload.Headers
-		EmailReceiver := ""
-		for _, s := range Header {
-			if s.Name == "To" {
-				EmailReceiver = s.Value
+		fmt.Println("Iterating over Messages:")
+		for _, l := range r.Messages {
+			msg, err := gmailService.Users.Messages.Get(user, l.Id).Format("full").Do()
+			if err != nil {
+				fmt.Printf("Unable to retrieve Message with Search Query: %v", err)
 			}
+			EmailTimings := msg.InternalDate / 1000
+			t := time.Unix(EmailTimings, 0)
+			if err != nil {
+				fmt.Println(err)
+			}
+			t = t.In(loc)
+			CentralTime := t.Format("2006-01-02 15:04:05")
+			if t.Unix() < TillTimeUnix {
+				BreakAllLoops = true
+				break
+			}
+			Header := msg.Payload.Headers
+			EmailReceiver := ""
+			for _, s := range Header {
+				if s.Name == "To" {
+					EmailReceiver = s.Value
+				}
+			}
+			if EmailReceiver == "tuanshivam@gmail.com" {
+				continue
+			}
+			Output := msg.Payload.Parts[0].Body.Data
+			Output = strings.Replace(Output, "-", "+", -1)
+			Output = strings.Replace(Output, "_", "/", -1)
+			emailBody := DecodeB64(Output)
+			emailTemplates.GetStoreCreditReport(emailBody, CentralTime, EmailReceiver)
 		}
-		if EmailReceiver == "tuanshivam@gmail.com" {
-			continue
+		if BreakAllLoops {
+			break
 		}
-		Output := msg.Payload.Parts[0].Body.Data
-		Output = strings.Replace(Output, "-", "+", -1)
-		Output = strings.Replace(Output, "_", "/", -1)
-		emailBody := DecodeB64(Output)
-		emailTemplates.GetStoreCreditReport(emailBody, CentralTime, EmailReceiver)
 	}
 	return emailTemplates.GetStoreCreditFinalValues()
 }
@@ -190,56 +205,71 @@ func SearchForEmailDynamic(SearchQuery string, EmailsAfterTime string) [][]inter
 
 	user := "me"
 	var r *gmail.ListMessagesResponse
-	r, err = gmailService.Users.Messages.List(user).Q(SearchQuery).MaxResults(500).Do()
-	if err != nil {
-		fmt.Println("Unable to retrieve Message with Search Query")
-		return nil
-	}
-	fmt.Println(len(r.Messages))
-	if len(r.Messages) == 0 {
-		fmt.Println("No Message found.")
-		return nil
-	}
-
-	fmt.Println("Iterating over Messages:")
-	for _, l := range r.Messages {
-		msg, err := gmailService.Users.Messages.Get(user, l.Id).Format("full").Do()
-		if err != nil {
-			log.Fatalf("Unable to retrieve Message with Search Query: %v", err)
+	NextToken := "First"
+	BreakAllLoops := false
+	for NextToken != "" {
+		if NextToken == "First" {
+			r, err = gmailService.Users.Messages.List(user).Q(SearchQuery).MaxResults(500).Do()
+			if err != nil {
+				fmt.Println("Unable to retrieve Message with Search Query")
+				return nil
+			}
+			NextToken = r.NextPageToken
+		} else {
+			r, err = gmailService.Users.Messages.List(user).Q(SearchQuery).MaxResults(500).PageToken(NextToken).Do()
+			if err != nil {
+				fmt.Println("Unable to retrieve Message with Search Query")
+				return nil
+			}
+			NextToken = r.NextPageToken
 		}
-		EmailTimings := msg.InternalDate / 1000
-		t := time.Unix(EmailTimings, 0)
-		if err != nil {
-			fmt.Println(err)
-		}
-		t = t.In(loc)
-		CentralTime := t.Format("2006-01-02 15:04:05")
-		if t.Unix() < TillTimeUnix {
-			fmt.Println(t.Unix())
+		if len(r.Messages) == 0 {
+			fmt.Println("No Message found.")
 			break
 		}
-		Header := msg.Payload.Headers
-		EmailReceiver := ""
-		for _, s := range Header {
-			if s.Name == "To" {
-				EmailReceiver = s.Value
+		fmt.Println("Iterating over Messages:")
+
+		for _, l := range r.Messages {
+			msg, err := gmailService.Users.Messages.Get(user, l.Id).Format("full").Do()
+			if err != nil {
+				log.Fatalf("Unable to retrieve Message with Search Query: %v", err)
+			}
+			EmailTimings := msg.InternalDate / 1000
+			t := time.Unix(EmailTimings, 0)
+			if err != nil {
+				fmt.Println(err)
+			}
+			t = t.In(loc)
+			CentralTime := t.Format("2006-01-02 15:04:05")
+			if t.Unix() < TillTimeUnix {
+				break
+			}
+			Header := msg.Payload.Headers
+			EmailReceiver := ""
+			for _, s := range Header {
+				if s.Name == "To" {
+					EmailReceiver = s.Value
+				}
+			}
+			if EmailReceiver == "tuanshivam@gmail.com" {
+				continue
+			}
+			if len(msg.Payload.Parts) > 0 {
+				Output := msg.Payload.Parts[0].Body.Data
+				Output = strings.Replace(Output, "-", "+", -1)
+				Output = strings.Replace(Output, "_", "/", -1)
+				emailBody := DecodeB64(Output)
+				emailTemplates.GetCreditAppliedReport(emailBody, CentralTime, EmailReceiver)
+			} else {
+				Output := msg.Payload.Body.Data
+				Output = strings.Replace(Output, "-", "+", -1)
+				Output = strings.Replace(Output, "_", "/", -1)
+				emailBody := DecodeB64(Output)
+				emailTemplates.GetCreditAppliedReport(emailBody, CentralTime, EmailReceiver)
 			}
 		}
-		if EmailReceiver == "tuanshivam@gmail.com" {
-			continue
-		}
-		if len(msg.Payload.Parts) > 0 {
-			Output := msg.Payload.Parts[0].Body.Data
-			Output = strings.Replace(Output, "-", "+", -1)
-			Output = strings.Replace(Output, "_", "/", -1)
-			emailBody := DecodeB64(Output)
-			emailTemplates.GetCreditAppliedReport(emailBody, CentralTime, EmailReceiver)
-		} else {
-			Output := msg.Payload.Body.Data
-			Output = strings.Replace(Output, "-", "+", -1)
-			Output = strings.Replace(Output, "_", "/", -1)
-			emailBody := DecodeB64(Output)
-			emailTemplates.GetCreditAppliedReport(emailBody, CentralTime, EmailReceiver)
+		if BreakAllLoops {
+			break
 		}
 	}
 	return emailTemplates.GetCreditAppliedFinalValues()

@@ -29,7 +29,7 @@ func main() {
 }
 
 /*
-http://localhost:7004/v1/gmail-reader/query='StoreCredit'/afterDate='2020-08-20'
+http://localhost:7004/v1/gmail-reader/query='StoreCredit'/afterDate='2020-10-04'
 http://localhost:7004/v1/gmail-reader/search='subject:Credit Applied to Order'/afterDate='2020-08-20'
 */
 
@@ -57,7 +57,7 @@ func handleDynamicGmailSearch(ctx *fasthttp.RequestCtx) {
 	}
 	writer := csv.NewWriter(f)
 	defer writer.Flush()
-	header := []string{"EmailWorkflow_Refresh_time", "Email Received Timestamp", "Order Number", "Order Date", "Internet Number", "Amount Credit", "Store SKU", "To Email Address"}
+	header := []string{"EmailWorkflow_Refresh_time", "Internet Number", "Order Number", "Amount Credit", "To Email Address", "Email Received Timestamp", "Order Date", "Store SKU"}
 	writer.Write(header)
 	stringfinalValues := make([][]string, len(finalValues)+5)
 	i := 0
@@ -118,7 +118,7 @@ func handleGmailSearch(ctx *fasthttp.RequestCtx) {
 	}
 	writer := csv.NewWriter(f)
 	defer writer.Flush()
-	header := []string{"StoreCredit_Refresh_time", "Email Received Timestamp", "Store Credit Amount", "Store Credit Link", "To Email Address"}
+	header := []string{"StoreCredit_Refresh_time", "Store Credit Link", "Email Received Timestamp", "Store Credit Amount", "To Email Address"}
 	writer.Write(header)
 	stringfinalValues := make([][]string, len(finalValues)+5)
 	i := 0

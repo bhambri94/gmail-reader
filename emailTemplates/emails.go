@@ -22,7 +22,6 @@ func GetStoreCreditReport(creditEmail string, InternalDate string, EmailReceiver
 	loc, _ := time.LoadLocation("America/Bogota")
 	currentTime := time.Now().In(loc)
 	row = append(row, currentTime.Format("2006-01-02 15:04:05"))
-	row = append(row, InternalDate)
 	StoreCreditAmount := ""
 	StoreCreditLink := ""
 	AmountStartIndex := strings.Index(creditEmail, "sent you a $")
@@ -30,6 +29,7 @@ func GetStoreCreditReport(creditEmail string, InternalDate string, EmailReceiver
 		AmountEndIndex := strings.Index(creditEmail[AmountStartIndex:], "eStore Credit")
 		if AmountEndIndex != -1 {
 			StoreCreditAmount = creditEmail[AmountStartIndex+len("sent you a ") : AmountStartIndex+AmountEndIndex]
+			StoreCreditAmount = strings.Replace(StoreCreditAmount, " USD", "", -1)
 		}
 	}
 	StoreCreditLinkStartIndex := strings.Index(creditEmail, "Go to  ")
@@ -39,8 +39,13 @@ func GetStoreCreditReport(creditEmail string, InternalDate string, EmailReceiver
 			StoreCreditLink = creditEmail[StoreCreditLinkStartIndex+len("Go to  ") : StoreCreditLinkStartIndex+StoreCreditLinkEndIndex-2]
 		}
 	}
-	row = append(row, StoreCreditAmount)
 	row = append(row, StoreCreditLink)
+	if len(InternalDate) > 10 {
+		row = append(row, InternalDate[0:10])
+	} else {
+		row = append(row, InternalDate)
+	}
+	row = append(row, StoreCreditAmount)
 	row = append(row, EmailReceiver)
 
 	storeCreditFinalValues = append(storeCreditFinalValues, row)
@@ -59,7 +64,6 @@ func GetCreditAppliedReport(creditEmail string, InternalDate string, EmailReceiv
 	loc, _ := time.LoadLocation("America/Bogota")
 	currentTime := time.Now().In(loc)
 	row = append(row, currentTime.Format("2006-01-02 15:04:05"))
-	row = append(row, InternalDate)
 	OrderNumber := ""
 	OrderDate := ""
 	InternetNumber := ""
@@ -98,6 +102,7 @@ func GetCreditAppliedReport(creditEmail string, InternalDate string, EmailReceiv
 			CreditAmount = creditEmail[CreditAmountStartIndex-15 : CreditAmountStartIndex+CreditAmountEndIndex+10]
 			CreditAmount = strings.Replace(CreditAmount, "credit has been", "", -1)
 			CreditAmount = strings.Replace(CreditAmount, "A", "", -1)
+			CreditAmount = strings.Replace(CreditAmount, " USD", "", -1)
 		}
 	}
 
@@ -108,13 +113,17 @@ func GetCreditAppliedReport(creditEmail string, InternalDate string, EmailReceiv
 			StoreSKU = creditEmail[StoreSKUStartIndex+len("Store SKU #") : StoreSKUStartIndex+StoreSKUEndIndex]
 		}
 	}
-
-	row = append(row, OrderNumber)
-	row = append(row, OrderDate)
 	row = append(row, InternetNumber)
+	row = append(row, OrderNumber)
 	row = append(row, CreditAmount)
-	row = append(row, StoreSKU)
 	row = append(row, EmailReceiver)
+	if len(InternalDate) > 10 {
+		row = append(row, InternalDate[0:10])
+	} else {
+		row = append(row, InternalDate)
+	}
+	row = append(row, OrderDate)
+	row = append(row, StoreSKU)
 
 	creditAppliedFinalValues = append(creditAppliedFinalValues, row)
 }
