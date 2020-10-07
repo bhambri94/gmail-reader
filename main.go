@@ -32,7 +32,7 @@ func main() {
 /*
 http://localhost:7004/v1/gmail-reader/query='StoreCredit'/afterDate='2020-10-04'
 http://localhost:7004/v1/gmail-reader/search='subject:Credit Applied to Order'/afterDate='2020-08-20'
-http://localhost:7004/v1/gmail-reader/search='subject:Your order just shipped'/afterDate='2020-07-20'
+http://localhost:7004/v1/gmail-reader/search='subject:Your order just shipped'/afterDate='2020-10-06'
 */
 
 func handleDynamicGmailSearch(ctx *fasthttp.RequestCtx) {
@@ -57,9 +57,10 @@ func handleDynamicGmailSearch(ctx *fasthttp.RequestCtx) {
 		header = []string{"EmailWorkflow_Refresh_time", "Internet Number", "Order Number", "Amount Credit", "To Email Address", "Email Received Timestamp", "Order Date", "Store SKU"}
 		CSVName = "StoreCreditCSV_" + currentTime.Format("2006-01-02 15:04:05") + ".csv"
 	} else if strings.Contains(SearchQuery.(string), "just shipped") {
-		header = []string{"EmailWorkflow_Refresh_time", "Internet Number", "Order Number", "Amount Credit", "To Email Address", "Tracking Number", "Carrier", "Email Received Timestamp", "Order Date", "Store SKU"}
+		header = []string{"EmailWorkflow_Refresh_time", "Internet Number", "Order Number", "To Email Address", "Amount Credit", "Tracking Number", "Carrier", "Shipment Date", "Order Date", "Shipped-Order Date", "Store SKU", "Address", "Quantity", "Item Name"}
 		CSVName = "ShippedOrdersCSV_" + currentTime.Format("2006-01-02 15:04:05") + ".csv"
 	}
+
 	f, err := os.Create(CSVName)
 	if err != nil {
 		log.Fatal(err)
