@@ -47,7 +47,7 @@ func getClient() *gmail.Service {
 	if err != nil {
 		log.Fatalf("Unable to retrieve Gmail client: %v", err)
 	}
-
+	gmailService = srv
 	return srv
 }
 
