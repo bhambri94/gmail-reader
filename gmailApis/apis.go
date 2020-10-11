@@ -208,10 +208,11 @@ func SearchForEmailDynamic(SearchQuery string, EmailsAfterTime string) [][]inter
 	user := "me"
 	NextToken := "First"
 	BreakAllLoops := false
+	var r *gmail.ListMessagesResponse
 	for NextToken != "" {
-		runtime.GC()
 		Output := ""
-		var r *gmail.ListMessagesResponse
+		r = nil
+		runtime.GC()
 		if NextToken == "First" {
 			r, err = gmailService.Users.Messages.List(user).Q(SearchQuery).MaxResults(20).Do()
 			if err != nil {
