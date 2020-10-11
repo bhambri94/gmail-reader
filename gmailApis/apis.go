@@ -214,14 +214,14 @@ func SearchForEmailDynamic(SearchQuery string, EmailsAfterTime string) [][]inter
 		r = nil
 		runtime.GC()
 		if NextToken == "First" {
-			r, err = gmailService.Users.Messages.List(user).Q(SearchQuery).MaxResults(20).Do()
+			r, err = gmailService.Users.Messages.List(user).Q(SearchQuery).MaxResults(10).Do()
 			if err != nil {
 				fmt.Println("Unable to retrieve Message with Search Query")
 				return nil
 			}
 			NextToken = r.NextPageToken
 		} else {
-			r, err = gmailService.Users.Messages.List(user).Q(SearchQuery).MaxResults(20).PageToken(NextToken).Do()
+			r, err = gmailService.Users.Messages.List(user).Q(SearchQuery).MaxResults(10).PageToken(NextToken).Do()
 			if err != nil {
 				fmt.Println("Unable to retrieve Message with Search Query")
 				return nil
