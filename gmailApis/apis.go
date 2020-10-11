@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"runtime"
 	"strings"
 	"time"
 
@@ -208,6 +209,7 @@ func SearchForEmailDynamic(SearchQuery string, EmailsAfterTime string) [][]inter
 	NextToken := "First"
 	BreakAllLoops := false
 	for NextToken != "" {
+		runtime.GC()
 		Output := ""
 		var r *gmail.ListMessagesResponse
 		if NextToken == "First" {
