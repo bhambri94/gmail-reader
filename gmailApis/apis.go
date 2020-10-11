@@ -21,7 +21,7 @@ var gmailService *gmail.Service
 
 // Retrieve a token, saves the token, then returns the generated client.
 func getClient() *gmail.Service {
-
+	fmt.Println("Creating new Gmail api service")
 	b, err := ioutil.ReadFile("gmailApis/credentials.json")
 	if err != nil {
 		log.Fatalf("Unable to read client secret file: %v", err)
@@ -205,11 +205,11 @@ func SearchForEmailDynamic(SearchQuery string, EmailsAfterTime string) [][]inter
 	}
 
 	user := "me"
-	var r *gmail.ListMessagesResponse
 	NextToken := "First"
 	BreakAllLoops := false
-	Output := ""
 	for NextToken != "" {
+		Output := ""
+		var r *gmail.ListMessagesResponse
 		if NextToken == "First" {
 			r, err = gmailService.Users.Messages.List(user).Q(SearchQuery).MaxResults(20).Do()
 			if err != nil {
