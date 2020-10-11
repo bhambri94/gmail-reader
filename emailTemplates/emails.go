@@ -9,7 +9,6 @@ import (
 
 var storeCreditFinalValues [][]interface{}
 var creditAppliedFinalValues [][]interface{}
-var shippingTrackerFinalValues [][]interface{}
 
 func StoreCreditFlushFinalValues() {
 	storeCreditFinalValues = nil
@@ -19,9 +18,9 @@ func CreditAppliedFlushFinalValues() {
 	creditAppliedFinalValues = nil
 }
 
-func ShippingTrackerFlushFinalValues() {
-	shippingTrackerFinalValues = nil
-}
+// func ShippingTrackerFlushFinalValues() {
+// 	shippingTrackerFinalValues = nil
+// }
 
 func GetStoreCreditReport(creditEmail string, InternalDate string, EmailReceiver string) {
 	var row []interface{}
@@ -65,9 +64,9 @@ func GetCreditAppliedFinalValues() [][]interface{} {
 	return creditAppliedFinalValues
 }
 
-func GetShippingTrackerFinalValues() [][]interface{} {
-	return shippingTrackerFinalValues
-}
+// func GetShippingTrackerFinalValues() [][]interface{} {
+// 	return shippingTrackerFinalValues
+// }
 
 func GetCreditAppliedReport(creditEmail string, InternalDate string, EmailReceiver string) {
 	var row []interface{}
@@ -138,7 +137,7 @@ func GetCreditAppliedReport(creditEmail string, InternalDate string, EmailReceiv
 	creditAppliedFinalValues = append(creditAppliedFinalValues, row)
 }
 
-func GetShippingTrackerReport(creditEmail string, InternalDate string, EmailReceiver string) {
+func GetShippingTrackerReport(creditEmail string, InternalDate string, EmailReceiver string) []interface{} {
 	var row []interface{}
 	loc, _ := time.LoadLocation("America/Bogota")
 	currentTime := time.Now().In(loc)
@@ -366,7 +365,7 @@ func GetShippingTrackerReport(creditEmail string, InternalDate string, EmailRece
 	row = append(row, Address)
 	row = append(row, Quantity)
 	row = append(row, ItemName)
-	shippingTrackerFinalValues = append(shippingTrackerFinalValues, row)
+	return row
 }
 
 func stripSpaces(str string) string {
