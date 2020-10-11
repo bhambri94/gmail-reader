@@ -211,6 +211,7 @@ func SearchForEmailDynamic(SearchQuery string, EmailsAfterTime string) [][]inter
 	var r *gmail.ListMessagesResponse
 	for NextToken != "" {
 		Output := ""
+		StringEmailBody := ""
 		r = nil
 		runtime.GC()
 		if NextToken == "First" {
@@ -264,17 +265,25 @@ func SearchForEmailDynamic(SearchQuery string, EmailsAfterTime string) [][]inter
 				Output = msg.Payload.Parts[0].Body.Data
 				Output = strings.Replace(Output, "-", "+", -1)
 				Output = strings.Replace(Output, "_", "/", -1)
-				emailBody := DecodeB64(Output)
-				emailTemplates.GetCreditAppliedReport(emailBody, CentralTime, EmailReceiver)
+				emailBody, err := base64.StdEncoding.DecodeString(Output)
+				if err != nil {
+					fmt.Println(err)
+				}
+				StringEmailBody = string(emailBody)
+				emailTemplates.GetCreditAppliedReport(StringEmailBody, CentralTime, EmailReceiver)
 			} else {
 				Output = msg.Payload.Body.Data
 				Output = strings.Replace(Output, "-", "+", -1)
 				Output = strings.Replace(Output, "_", "/", -1)
-				emailBody := DecodeB64(Output)
+				emailBody, err := base64.StdEncoding.DecodeString(Output)
+				if err != nil {
+					fmt.Println(err)
+				}
+				StringEmailBody = string(emailBody)
 				if strings.Contains(SearchQuery, "Credit Applied") {
-					emailTemplates.GetCreditAppliedReport(emailBody, CentralTime, EmailReceiver)
+					emailTemplates.GetCreditAppliedReport(StringEmailBody, CentralTime, EmailReceiver)
 				} else if strings.Contains(SearchQuery, "just shipped") {
-					shippingTrackerFinalValues = append(shippingTrackerFinalValues, emailTemplates.GetShippingTrackerReport(emailBody, CentralTime, EmailReceiver))
+					shippingTrackerFinalValues = append(shippingTrackerFinalValues, emailTemplates.GetShippingTrackerReport(StringEmailBody, CentralTime, EmailReceiver))
 				}
 
 			}
