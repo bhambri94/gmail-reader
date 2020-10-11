@@ -208,6 +208,7 @@ func SearchForEmailDynamic(SearchQuery string, EmailsAfterTime string) [][]inter
 	var r *gmail.ListMessagesResponse
 	NextToken := "First"
 	BreakAllLoops := false
+	Output := ""
 	for NextToken != "" {
 		if NextToken == "First" {
 			r, err = gmailService.Users.Messages.List(user).Q(SearchQuery).MaxResults(500).Do()
@@ -257,13 +258,13 @@ func SearchForEmailDynamic(SearchQuery string, EmailsAfterTime string) [][]inter
 				continue
 			}
 			if len(msg.Payload.Parts) > 0 {
-				Output := msg.Payload.Parts[0].Body.Data
+				Output = msg.Payload.Parts[0].Body.Data
 				Output = strings.Replace(Output, "-", "+", -1)
 				Output = strings.Replace(Output, "_", "/", -1)
 				emailBody := DecodeB64(Output)
 				emailTemplates.GetCreditAppliedReport(emailBody, CentralTime, EmailReceiver)
 			} else {
-				Output := msg.Payload.Body.Data
+				Output = msg.Payload.Body.Data
 				Output = strings.Replace(Output, "-", "+", -1)
 				Output = strings.Replace(Output, "_", "/", -1)
 				emailBody := DecodeB64(Output)
