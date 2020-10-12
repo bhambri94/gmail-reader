@@ -194,7 +194,7 @@ func GetShippingTrackerReport(creditEmail string, InternalDate string, EmailRece
 	}
 
 	CreditAmountStartIndex := strings.Index(creditEmail, "Order Total")
-	if OrderDateStartIndex != -1 {
+	if CreditAmountStartIndex != -1 {
 		CreditAmountEndIndex := strings.Index(creditEmail[CreditAmountStartIndex:], "</tr>")
 		if CreditAmountEndIndex != -1 {
 			SubString := creditEmail[CreditAmountStartIndex+len("Order Total") : CreditAmountStartIndex+CreditAmountEndIndex]
@@ -281,7 +281,7 @@ func GetShippingTrackerReport(creditEmail string, InternalDate string, EmailRece
 	}
 
 	QuantityStartIndex := strings.Index(creditEmail, "Qty")
-	if TrackingStartIndex != -1 {
+	if QuantityStartIndex != -1 {
 		SubString := creditEmail[QuantityStartIndex+len("Qty")+4:]
 		QuantityStartIndex := strings.Index(SubString, "Qty")
 		if QuantityStartIndex != -1 {
@@ -363,6 +363,141 @@ func GetShippingTrackerReport(creditEmail string, InternalDate string, EmailRece
 	row = append(row, DiffDays)
 	row = append(row, stripSpaces(StoreSKU))
 	row = append(row, Address)
+	row = append(row, Quantity)
+	row = append(row, ItemName)
+	return row
+}
+
+func GetReturnedProductsReport(creditEmail string, InternalDate string, EmailReceiver string) []interface{} {
+	var row []interface{}
+	loc, _ := time.LoadLocation("America/Bogota")
+	currentTime := time.Now().In(loc)
+	row = append(row, currentTime.Format("2006-01-02 15:04:05"))
+	OrderNumber := ""
+	OrderDate := ""
+	InternetNumber := ""
+	CreditAmount := ""
+	StoreSKU := ""
+	Quantity := ""
+	ItemName := ""
+
+	OrderNumberStartIndex := strings.Index(creditEmail, "Order Number")
+	if OrderNumberStartIndex != -1 {
+		OrderNumberEndIndex := strings.Index(creditEmail[OrderNumberStartIndex:], "</span>")
+		if OrderNumberEndIndex != -1 {
+			Substring := creditEmail[OrderNumberStartIndex+len("Order Number") : OrderNumberStartIndex+OrderNumberEndIndex+9]
+			OrderNumberStartIndex = strings.Index(Substring, "<span")
+			if OrderNumberStartIndex != -1 {
+				OrderNumberEndIndex = strings.Index(Substring[OrderNumberStartIndex:], "</span>")
+				if OrderNumberEndIndex != -1 {
+					OrderNumber = Substring[OrderNumberStartIndex+len("<span>") : OrderNumberStartIndex+OrderNumberEndIndex]
+					OrderNumber = strings.Replace(OrderNumber, ":</b>", "", -1)
+					OrderNumber = strings.Replace(OrderNumber, ">", "", -1)
+				}
+			}
+
+		}
+	}
+	OrderDateStartIndex := strings.Index(creditEmail, "Order Date")
+	if OrderDateStartIndex != -1 {
+		OrderDateEndIndex := strings.Index(creditEmail[OrderDateStartIndex:], "</span>")
+		if OrderDateEndIndex != -1 {
+			SubString := creditEmail[OrderDateStartIndex+len("Order Date") : OrderDateStartIndex+OrderDateEndIndex+9]
+			OrderDateStartIndex := strings.Index(SubString, "<span>")
+			if OrderDateStartIndex != -1 {
+				OrderDateEndIndex := strings.Index(SubString[OrderDateStartIndex:], "</span>")
+				if OrderDateEndIndex != -1 {
+					OrderDate = SubString[OrderDateStartIndex+len("<span>") : OrderDateStartIndex+OrderDateEndIndex]
+				}
+			}
+
+		}
+	}
+
+	InternetNumberStartIndex := strings.Index(creditEmail, "Internet #")
+	if InternetNumberStartIndex != -1 {
+		InternetNumberEndIndex := strings.Index(creditEmail[InternetNumberStartIndex:], "<br")
+		if InternetNumberEndIndex != -1 {
+			InternetNumber = creditEmail[InternetNumberStartIndex+len("Internet #") : InternetNumberStartIndex+InternetNumberEndIndex]
+		}
+	}
+
+	CreditAmountStartIndex := strings.Index(creditEmail, "$")
+	if CreditAmountStartIndex != -1 {
+		CreditAmountEndIndex := strings.Index(creditEmail[CreditAmountStartIndex:], "</div>")
+		if CreditAmountEndIndex != -1 {
+			CreditAmount = creditEmail[CreditAmountStartIndex-1 : CreditAmountStartIndex+CreditAmountEndIndex]
+			// CreditAmount = strings.Replace(CreditAmount, " USD", "", -1)
+
+		}
+	}
+
+	StoreSKUStartIndex := strings.Index(creditEmail, "Store SKU #")
+	if StoreSKUStartIndex != -1 {
+		StoreSKUEndIndex := strings.Index(creditEmail[StoreSKUStartIndex:], "<br")
+		if StoreSKUEndIndex != -1 {
+			StoreSKU = creditEmail[StoreSKUStartIndex+len("Store SKU #") : StoreSKUStartIndex+StoreSKUEndIndex]
+		}
+	}
+
+	QuantityStartIndex := strings.Index(creditEmail, "<b>Qty</b>")
+	if QuantityStartIndex != -1 {
+		QuantityEndIndex := strings.Index(creditEmail[QuantityStartIndex:], "</span>")
+		if QuantityEndIndex != -1 {
+			Quantity = creditEmail[QuantityStartIndex+len("<b>Qty</b>") : QuantityStartIndex+QuantityEndIndex]
+			Quantity = strings.Replace(Quantity, "<span style=", "", -1)
+			Quantity = strings.Replace(Quantity, "display:inline-block;float:right", "", -1)
+			Quantity = strings.Replace(Quantity, ";", "", -1)
+			Quantity = (stripSpaces(Quantity))[3:]
+
+		}
+	}
+
+	ItemNameStartIndex := strings.Index(creditEmail, "</td> <td style")
+	if ItemNameStartIndex != -1 {
+		ItemNameEndIndex := strings.Index(creditEmail[ItemNameStartIndex:], "</a>")
+		if ItemNameEndIndex != -1 {
+			SubString3 := creditEmail[ItemNameStartIndex+len("</td> <td style") : ItemNameStartIndex+ItemNameEndIndex+10]
+			ItemNameStartIndex := strings.Index(SubString3, "<a href=http://link.order.homedepot.com")
+			if ItemNameStartIndex != -1 {
+				ItemNameEndIndex := strings.Index(SubString3[ItemNameStartIndex:], "</a>")
+				if ItemNameEndIndex != -1 {
+					SubString := SubString3[ItemNameStartIndex+len("<a href=http://link.order.homedepot.com") : ItemNameStartIndex+ItemNameEndIndex+10]
+					ItemNameStartIndex := strings.Index(SubString, "<a href=http://link.order.homedepot.com")
+					if ItemNameStartIndex != -1 {
+						ItemNameEndIndex := strings.Index(SubString[ItemNameStartIndex:], "</a>")
+						if ItemNameEndIndex != -1 {
+							SubString2 := SubString[ItemNameStartIndex+len("<a href=http://link.order.homedepot.com") : ItemNameStartIndex+ItemNameEndIndex+6]
+							ItemNameStartIndex := strings.Index(SubString2, "_blank")
+							// fmt.Println(SubString2)
+							if ItemNameStartIndex != -1 {
+								ItemNameEndIndex := strings.Index(SubString2[ItemNameStartIndex:], "</a>")
+								if ItemNameEndIndex != -1 {
+									ItemName = SubString2[ItemNameStartIndex+len("_blank")+2 : ItemNameStartIndex+ItemNameEndIndex]
+									ItemName = stripSpaces(ItemName)
+									ItemName = strings.Replace(ItemName, "</a></span>", "", -1)
+
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	row = append(row, InternetNumber)
+	row = append(row, stripSpaces(OrderNumber))
+	row = append(row, EmailReceiver)
+	row = append(row, stripSpaces(CreditAmount))
+
+	if len(InternalDate) > 10 {
+		row = append(row, InternalDate[0:10])
+	} else {
+		row = append(row, InternalDate)
+	}
+	row = append(row, OrderDate)
+	row = append(row, stripSpaces(StoreSKU))
 	row = append(row, Quantity)
 	row = append(row, ItemName)
 	return row

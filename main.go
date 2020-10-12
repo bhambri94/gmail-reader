@@ -34,6 +34,7 @@ func main() {
 http://localhost:7004/v1/gmail-reader/query='StoreCredit'/afterDate='2020-10-04'
 http://localhost:7004/v1/gmail-reader/search='subject:Credit Applied to Order'/fromDate='2020-10-06'/toDate='2020-10-06'
 http://localhost:7004/v1/gmail-reader/search='subject:Your order just shipped'/fromDate='2020-07-01'/toDate='2020-07-10'
+http://localhost:7004/v1/gmail-reader/search='subject:We have received your returned products'/fromDate='2020-07-01'/toDate='2020-07-10'
 */
 
 func handleDynamicGmailSearch(ctx *fasthttp.RequestCtx) {
@@ -90,6 +91,9 @@ func handleDynamicGmailSearch(ctx *fasthttp.RequestCtx) {
 	} else if strings.Contains(SearchQuery.(string), "just shipped") {
 		header = []string{"EmailWorkflow_Refresh_time", "Internet Number", "Order Number", "To Email Address", "Amount Credit", "Tracking Number", "Carrier", "Shipment Date", "Order Date", "Shipped-Order Date", "Store SKU", "Address", "Quantity", "Item Name"}
 		CSVName = "ShippedOrdersCSV_" + currentTime.Format("2006-01-02 15:04:05") + ".csv"
+	} else if strings.Contains(SearchQuery.(string), "returned products") {
+		header = []string{"EmailWorkflow_Refresh_time", "Internet Number", "Order Number", "To Email Address", "Amount Total", "Order Date", "Email Received Date", "Store SKU", "Quantity"}
+		CSVName = "ReturnedOrdersCSV_" + currentTime.Format("2006-01-02 15:04:05") + ".csv"
 	}
 
 	f, err := os.Create(CSVName)
