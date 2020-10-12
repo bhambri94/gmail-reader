@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -20,19 +21,19 @@ var (
 )
 
 func main() {
-	sugar.Infof("starting ecommerce manager app server...")
+	sugar.Infof("starting gmail reader app server...")
 	defer logger.Sync() // flushes buffer, if any
 
 	router := fasthttprouter.New()
 	router.GET("/v1/gmail-reader/query=:query/afterDate=:afterDate", handleGmailSearch)
-	router.GET("/v1/gmail-reader/search=:query/afterDate=:afterDate", handleDynamicGmailSearch)
+	router.GET("/v1/gmail-reader/search=:query/fromDate=:fromDate/toDate=:toDate", handleDynamicGmailSearch)
 	log.Fatal(fasthttp.ListenAndServe(":7004", router.Handler))
 }
 
 /*
 http://localhost:7004/v1/gmail-reader/query='StoreCredit'/afterDate='2020-10-04'
-http://localhost:7004/v1/gmail-reader/search='subject:Credit Applied to Order'/afterDate='2020-08-20'
-http://localhost:7004/v1/gmail-reader/search='subject:Your order just shipped'/afterDate='2020-10-06'
+http://localhost:7004/v1/gmail-reader/search='subject:Credit Applied to Order'/fromDate='2020-10-06'/toDate='2020-10-06'
+http://localhost:7004/v1/gmail-reader/search='subject:Your order just shipped'/fromDate='2020-07-01'/toDate='2020-07-10'
 */
 
 func handleDynamicGmailSearch(ctx *fasthttp.RequestCtx) {
@@ -42,14 +43,44 @@ func handleDynamicGmailSearch(ctx *fasthttp.RequestCtx) {
 		sugar.Infof("SearchQuery is := " + SearchQuery.(string))
 		SearchQuery = SearchQuery.(string)[1 : len(SearchQuery.(string))-1]
 	}
-	EmailAfterDate := ctx.UserValue("afterDate")
+	EmailAfterDate := ctx.UserValue("fromDate")
 	if EmailAfterDate != nil {
 		sugar.Infof("EmailAfterDate is := " + EmailAfterDate.(string))
 		EmailAfterDate = EmailAfterDate.(string)[1 : len(EmailAfterDate.(string))-1]
 	}
+	EmailBeforeDate := ctx.UserValue("toDate")
+	if EmailBeforeDate != nil {
+		sugar.Infof("EmailBeforeDate is := " + EmailBeforeDate.(string))
+		EmailBeforeDate = EmailBeforeDate.(string)[1 : len(EmailBeforeDate.(string))-1]
+	}
+	loc, err := time.LoadLocation("America/Bogota")
+	BeforeTillTime, err := time.ParseInLocation("2006-01-02 15:04:05", EmailBeforeDate.(string)+" 00:00:00", loc)
+	if err != nil {
+		fmt.Println(err)
+		ctx.Response.Header.Set("Content-Type", "application/json")
+		ctx.Response.SetStatusCode(200)
+		ctx.SetBody([]byte("Failed! Incorrect toDate Format in URl, Please fix. Example: "))
+		sugar.Infof("calling gmail reader api failure!")
+		return
+	}
+	BeforeTimeUnix := int(BeforeTillTime.Unix())
+
+	AfterTillTime, err := time.ParseInLocation("2006-01-02 15:04:05", EmailAfterDate.(string)+" 00:00:00", loc)
+	if err != nil {
+		fmt.Println(err)
+		ctx.Response.Header.Set("Content-Type", "application/json")
+		ctx.Response.SetStatusCode(200)
+		ctx.SetBody([]byte("Failed! Incorrect fromDate Format in URl, Please fix."))
+		sugar.Infof("calling gmail reader api failure!")
+		return
+	}
+	AfterTimeUnix := int(AfterTillTime.Unix())
+
 	var finalValues [][]interface{}
-	finalValues = gmailApis.SearchForEmailDynamic(SearchQuery.(string), EmailAfterDate.(string)+" 00:00:00")
-	loc, _ := time.LoadLocation("America/Bogota")
+	FinalSearchQuery := SearchQuery.(string) + " before:" + strconv.Itoa(BeforeTimeUnix) + " after:" + strconv.Itoa(AfterTimeUnix)
+	fmt.Println(FinalSearchQuery)
+	finalValues = gmailApis.SearchForEmailDynamic(FinalSearchQuery, EmailAfterDate.(string)+" 00:00:00")
+	loc, _ = time.LoadLocation("America/Bogota")
 	currentTime := time.Now().In(loc)
 	var header []string
 	var CSVName string
