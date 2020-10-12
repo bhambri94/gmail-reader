@@ -119,18 +119,18 @@ func handleDynamicGmailSearch(ctx *fasthttp.RequestCtx) {
 	ctx.Response.Header.Set("Content-Type", "text/csv")
 	ctx.Response.Header.Set("Content-Disposition", "attachment;filename="+CSVName)
 	ctx.SendFile(CSVName)
-	// err = os.Remove(CSVName)
-	// if err != nil {
-	// 	fmt.Println("Unable to delete file")
-	// } else {
-	// 	fmt.Println("File Deleted")
-	// }
-	// err = os.Remove(CSVName + ".fasthttp.gz")
-	// if err != nil {
-	// 	fmt.Println("Unable to delete file")
-	// } else {
-	// 	fmt.Println("File Deleted")
-	// }
+	err = os.Remove(CSVName)
+	if err != nil {
+		fmt.Println("Unable to delete file")
+	} else {
+		fmt.Println("File Deleted")
+	}
+	err = os.Remove(CSVName + ".fasthttp.gz")
+	if err != nil {
+		fmt.Println("Unable to delete file")
+	} else {
+		fmt.Println("File Deleted")
+	}
 }
 
 func handleGmailSearch(ctx *fasthttp.RequestCtx) {
@@ -180,16 +180,16 @@ func handleGmailSearch(ctx *fasthttp.RequestCtx) {
 	ctx.Response.Header.Set("Content-Type", "text/csv")
 	ctx.Response.Header.Set("Content-Disposition", "attachment;filename="+CSVName)
 	ctx.SendFile(CSVName)
-	// err = os.Remove(CSVName)
-	// if err != nil {
-	// 	fmt.Println("Unable to delete file")
-	// } else {
-	// 	fmt.Println("File Deleted")
-	// }
-	// err = os.Remove(CSVName + ".fasthttp.gz")
-	// if err != nil {
-	// 	fmt.Println("Unable to delete file")
-	// } else {
-	// 	fmt.Println("File Deleted")
-	// }
+	err = os.Remove(CSVName)
+	if err != nil {
+		fmt.Println("Unable to delete file")
+	} else {
+		fmt.Println("File Deleted")
+	}
+	err = os.Remove(CSVName + ".fasthttp.gz")
+	if err != nil {
+		fmt.Println("Unable to delete file")
+	} else {
+		fmt.Println("File Deleted")
+	}
 }
