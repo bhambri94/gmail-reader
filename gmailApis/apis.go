@@ -194,6 +194,7 @@ func SearchForEmail(SearchQuery string, EmailsAfterTime string) [][]interface{} 
 func SearchForEmailDynamic(SearchQuery string, EmailsAfterTime string) [][]interface{} {
 	var shippingTrackerFinalValues [][]interface{}
 	var returnedProductsFinalValues [][]interface{}
+	var newOrderFinalValues [][]interface{}
 	loc, err := time.LoadLocation("America/Bogota")
 	TillTime, err := time.ParseInLocation("2006-01-02 15:04:05", EmailsAfterTime, loc)
 	if err != nil {
@@ -287,6 +288,8 @@ func SearchForEmailDynamic(SearchQuery string, EmailsAfterTime string) [][]inter
 					shippingTrackerFinalValues = append(shippingTrackerFinalValues, emailTemplates.GetShippingTrackerReport(StringEmailBody, CentralTime, EmailReceiver))
 				} else if strings.Contains(SearchQuery, "returned products") {
 					returnedProductsFinalValues = append(returnedProductsFinalValues, emailTemplates.GetReturnedProductsReport(StringEmailBody, CentralTime, EmailReceiver))
+				} else if strings.Contains(SearchQuery, "received your order") {
+					newOrderFinalValues = append(newOrderFinalValues, emailTemplates.GetNewOrderReport(StringEmailBody, CentralTime, EmailReceiver))
 				}
 
 			}
@@ -302,6 +305,8 @@ func SearchForEmailDynamic(SearchQuery string, EmailsAfterTime string) [][]inter
 		return shippingTrackerFinalValues
 	} else if strings.Contains(SearchQuery, "returned products") {
 		return returnedProductsFinalValues
+	} else if strings.Contains(SearchQuery, "received your order") {
+		return newOrderFinalValues
 	}
 	return nil
 }

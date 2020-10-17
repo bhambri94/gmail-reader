@@ -503,6 +503,232 @@ func GetReturnedProductsReport(creditEmail string, InternalDate string, EmailRec
 	return row
 }
 
+func GetNewOrderReport(creditEmail string, InternalDate string, EmailReceiver string) []interface{} {
+	var row []interface{}
+	loc, _ := time.LoadLocation("America/Bogota")
+	currentTime := time.Now().In(loc)
+	row = append(row, currentTime.Format("2006-01-02 15:04:05"))
+	OrderNumber := ""
+	InternetNumber := ""
+	CreditAmount := ""
+	StoreSKU := ""
+	Address := ""
+	EstimatedArrival := ""
+	Quantity := ""
+	ItemTotal := ""
+	ItemName := ""
+
+	OrderNumberStartIndex := strings.Index(creditEmail, "Order Number </span>")
+	if OrderNumberStartIndex != -1 {
+		OrderNumberEndIndex := strings.Index(creditEmail[OrderNumberStartIndex+len("Order Number </span>"):], "</span>")
+		if OrderNumberEndIndex != -1 {
+			Substring := creditEmail[OrderNumberStartIndex+len("Order Number </span>") : OrderNumberStartIndex+OrderNumberEndIndex+len("Order Number </span> </span>")]
+			OrderNumberStartIndex = strings.Index(Substring, "font-weight:bold;")
+			if OrderNumberStartIndex != -1 {
+				OrderNumberEndIndex = strings.Index(Substring[OrderNumberStartIndex:], "</span>")
+				if OrderNumberEndIndex != -1 {
+					OrderNumber = Substring[OrderNumberStartIndex+len("font-weight:bold;")+2 : OrderNumberStartIndex+OrderNumberEndIndex]
+				}
+			}
+
+		}
+	}
+	// OrderDateStartIndex := strings.Index(creditEmail, "Order Date")
+	// if OrderDateStartIndex != -1 {
+	// 	OrderDateEndIndex := strings.Index(creditEmail[OrderDateStartIndex+20:], "</span>")
+	// 	if OrderDateEndIndex != -1 {
+	// 		SubString := creditEmail[OrderDateStartIndex+len("Order Date") : OrderDateStartIndex+OrderDateEndIndex]
+	// 		OrderDateStartIndex := strings.Index(SubString, "font-weight:bold;")
+	// 		if OrderDateStartIndex != -1 {
+	// 			OrderDateEndIndex := strings.Index(SubString[OrderDateStartIndex:], "</span>")
+	// 			if OrderDateEndIndex != -1 {
+	// 				OrderDate = SubString[OrderDateStartIndex+len("font-weight:bold;")+2 : OrderDateStartIndex+OrderDateEndIndex]
+	// 			}
+	// 		}
+
+	// 	}
+	// }
+
+	InternetNumberStartIndex := strings.Index(creditEmail, "Internet #")
+	if InternetNumberStartIndex != -1 {
+		InternetNumberEndIndex := strings.Index(creditEmail[InternetNumberStartIndex:], "<br")
+		if InternetNumberEndIndex != -1 {
+			InternetNumber = creditEmail[InternetNumberStartIndex+len("Internet #") : InternetNumberStartIndex+InternetNumberEndIndex]
+		}
+	}
+
+	CreditAmountStartIndex := strings.Index(creditEmail, "Order Total")
+	if CreditAmountStartIndex != -1 {
+		CreditAmountEndIndex := strings.Index(creditEmail[CreditAmountStartIndex:], "</tr>")
+		if CreditAmountEndIndex != -1 {
+			SubString := creditEmail[CreditAmountStartIndex+len("Order Total") : CreditAmountStartIndex+CreditAmountEndIndex]
+			CreditAmountStartIndex := strings.Index(SubString, "display:block;text-align:right;")
+			if CreditAmountStartIndex != -1 {
+				CreditAmountEndIndex := strings.Index(SubString[CreditAmountStartIndex:], "</span>")
+				if CreditAmountEndIndex != -1 {
+					CreditAmount = SubString[CreditAmountStartIndex+len("display:block;text-align:right;")+2 : CreditAmountStartIndex+CreditAmountEndIndex]
+					CreditAmount = strings.Replace(CreditAmount, " USD", "", -1)
+				}
+			}
+
+		}
+	}
+	i := 0
+	// var ProductRow []interface{}
+	ParentStoreSKUStartIndex := 0
+	ParentAddressStartIndex := 0
+	ParentQuantityStartIndex := 0
+	ParentItemTotalStartIndex := 0
+	ParentItemNameStartIndex := 0
+	ParentEstArrivalStartIndex := 0
+
+	for i < 1 {
+
+		StoreSKUCreditEmail := creditEmail[ParentStoreSKUStartIndex:]
+		StoreSKUStartIndex := strings.Index(StoreSKUCreditEmail, "Store SKU #")
+		if StoreSKUStartIndex != -1 {
+			ParentStoreSKUStartIndex = StoreSKUStartIndex + 20
+			StoreSKUEndIndex := strings.Index(StoreSKUCreditEmail[StoreSKUStartIndex:], "<br")
+			if StoreSKUEndIndex != -1 {
+				StoreSKU = StoreSKUCreditEmail[StoreSKUStartIndex+len("Store SKU #") : StoreSKUStartIndex+StoreSKUEndIndex]
+			}
+		}
+
+		ParentAddressCreditEmail := creditEmail[ParentAddressStartIndex:]
+		AddressStartIndex := strings.Index(ParentAddressCreditEmail, "inside-store-detail")
+		if AddressStartIndex != -1 {
+			ParentAddressStartIndex = AddressStartIndex + 20
+			AddressEndIndex := strings.Index(ParentAddressCreditEmail[AddressStartIndex:], "</div>")
+			if AddressEndIndex != -1 {
+				SubString := ParentAddressCreditEmail[AddressStartIndex+len("inside-store-detail") : AddressStartIndex+AddressEndIndex+len("</div>")]
+				AddressStartIndex = strings.Index(SubString, "<br />")
+				if AddressStartIndex != -1 {
+					AddressEndIndex = strings.Index(SubString[AddressStartIndex:], "</div>")
+					if AddressEndIndex != -1 {
+						SubString2 := SubString[AddressStartIndex+len("<br />") : AddressStartIndex+AddressEndIndex+len("</div>")]
+						AddressStartIndex = strings.Index(SubString2, "<br />")
+						if AddressStartIndex != -1 {
+							AddressEndIndex = strings.Index(SubString2[AddressStartIndex+6:], "<br />")
+							if AddressEndIndex != -1 {
+								Address = SubString2[AddressStartIndex+len("<br />") : AddressStartIndex+AddressEndIndex]
+								Address = strings.Replace(Address, "<span>", "", -1)
+								Address = strings.Replace(Address, "span style=", "", -1)
+								Address = strings.Replace(Address, "text-transform:capitalize;", "", -1)
+								Address = strings.Replace(Address, "</span>", "", -1)
+								Address = strings.Replace(Address, "</div>", "", -1)
+								Address = strings.Replace(Address, "<", "", -1)
+								Address = strings.Replace(Address, ">", "", -1)
+								Address = stripSpaces(Address)[2:]
+							}
+						}
+					}
+				}
+			}
+		}
+
+		EstArrivalCreditEmail := creditEmail[ParentEstArrivalStartIndex:]
+		EstArrivalStartIndex := strings.Index(EstArrivalCreditEmail, "Est Arrival:")
+		if EstArrivalStartIndex != -1 {
+			ParentEstArrivalStartIndex = EstArrivalStartIndex + 20
+			EstArrivalEndIndex := strings.Index(EstArrivalCreditEmail[EstArrivalStartIndex:], "</span>")
+			if EstArrivalEndIndex != -1 {
+				EstimatedArrival = EstArrivalCreditEmail[EstArrivalStartIndex+len("Est Arrival:") : EstArrivalStartIndex+EstArrivalEndIndex]
+				EstimatedArrival = strings.Replace(EstimatedArrival, "<b style", "", -1)
+				EstimatedArrival = strings.Replace(EstimatedArrival, ">", "", -1)
+				EstimatedArrival = strings.Replace(EstimatedArrival, "color:#00873C", "", -1)
+				EstimatedArrival = strings.Replace(EstimatedArrival, "</b", "", -1)
+				EstimatedArrival = EstimatedArrival[4:]
+			}
+		}
+
+		QuantityCreditEmail := creditEmail[ParentQuantityStartIndex:]
+		QuantityStartIndex := strings.Index(QuantityCreditEmail, "Qty")
+		if QuantityStartIndex != -1 {
+			SubString := QuantityCreditEmail[QuantityStartIndex+len("Qty")+4:]
+			ParentQuantityStartIndex = QuantityStartIndex + 20
+			QuantityStartIndex = strings.Index(SubString, "Qty")
+			if QuantityStartIndex != -1 {
+				QuantityEndIndex := strings.Index(SubString[QuantityStartIndex:], "</span>")
+				if QuantityEndIndex != -1 {
+					Quantity = strings.Replace(SubString[QuantityStartIndex+len("<br/>"):QuantityStartIndex+QuantityEndIndex], "<span style=", "", -1)
+					Quantity = strings.Replace(Quantity, "display:inline-block;float:right;", "", -1)
+					Quantity = strings.Replace(Quantity, "b>", "", -1)
+					Quantity = strings.Replace(Quantity, ">", "", -1)
+					Quantity = (stripSpaces(Quantity))[3:]
+				}
+			}
+		}
+
+		ItemTotalCreditEmail := creditEmail[ParentItemTotalStartIndex:]
+		ItemTotalStartIndex := strings.Index(ItemTotalCreditEmail, "<b> Item Total </b>")
+		if ItemTotalStartIndex != -1 {
+			ParentItemTotalStartIndex = ItemTotalStartIndex + 20
+			ItemTotalEndIndex := strings.Index(ItemTotalCreditEmail[ItemTotalStartIndex:], "</span>")
+			if ItemTotalEndIndex != -1 {
+				ItemTotal = ItemTotalCreditEmail[ItemTotalStartIndex+len("<b> Item Total </b>") : ItemTotalStartIndex+ItemTotalEndIndex]
+				ItemTotal = strings.Replace(ItemTotal, "display:inline-block;float:right;", "", -1)
+				ItemTotal = strings.Replace(ItemTotal, ">", "", -1)
+				ItemTotal = strings.Replace(ItemTotal, "<span style", "", -1)
+				ItemTotal = ItemTotal[4:]
+			}
+		}
+
+		// Unit Price
+		ItemNameCreditEmail := creditEmail[ParentItemNameStartIndex:]
+		ItemNameStartIndex := strings.Index(ItemNameCreditEmail, "<table> <tr> <td style")
+		if ItemNameStartIndex != -1 {
+			ParentItemNameStartIndex = ItemNameStartIndex + 20
+			ItemNameEndIndex := strings.Index(ItemNameCreditEmail[ItemNameStartIndex:], "<br />")
+			if ItemNameEndIndex != -1 {
+				SubString3 := ItemNameCreditEmail[ItemNameStartIndex+len("<table> <tr> <td style") : ItemNameStartIndex+ItemNameEndIndex+10]
+				fmt.Println(SubString3)
+				ItemNameStartIndex = strings.Index(SubString3, "<a href=http://link.order.homedepot.com")
+				if ItemNameStartIndex != -1 {
+					ItemNameEndIndex = strings.Index(SubString3[ItemNameStartIndex:], "<br />")
+					if ItemNameEndIndex != -1 {
+						SubString := SubString3[ItemNameStartIndex+len("<a href=http://link.order.homedepot.com") : ItemNameStartIndex+ItemNameEndIndex+10]
+						ItemNameStartIndex = strings.Index(SubString, "<a href=http://link.order.homedepot.com")
+						if ItemNameStartIndex != -1 {
+							ItemNameEndIndex = strings.Index(SubString[ItemNameStartIndex:], "<br />")
+							if ItemNameEndIndex != -1 {
+								SubString2 := SubString[ItemNameStartIndex+len("<a href=http://link.order.homedepot.com") : ItemNameStartIndex+ItemNameEndIndex+6]
+								ItemNameStartIndex = strings.Index(SubString2, "_blank")
+								if ItemNameStartIndex != -1 {
+									ItemNameEndIndex = strings.Index(SubString2[ItemNameStartIndex:], "<br />")
+									if ItemNameEndIndex != -1 {
+										ItemName = SubString2[ItemNameStartIndex+len("_blank")+2 : ItemNameStartIndex+ItemNameEndIndex]
+										ItemName = stripSpaces(ItemName)
+										ItemName = strings.Replace(ItemName, "</a></span>", "", -1)
+
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		i++
+	}
+
+	row = append(row, InternetNumber)
+	row = append(row, stripSpaces(OrderNumber))
+	row = append(row, EmailReceiver)
+	row = append(row, stripSpaces(CreditAmount))
+	if len(InternalDate) > 10 {
+		row = append(row, InternalDate[0:10])
+	} else {
+		row = append(row, InternalDate)
+	}
+	row = append(row, stripSpaces(StoreSKU))
+	row = append(row, Address)
+	row = append(row, EstimatedArrival)
+	row = append(row, Quantity)
+	row = append(row, ItemTotal)
+	row = append(row, ItemName)
+	return row
+}
+
 func stripSpaces(str string) string {
 	return strings.Map(func(r rune) rune {
 		if unicode.IsSpace(r) {
