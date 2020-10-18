@@ -618,7 +618,7 @@ func GetNewOrderReport(creditEmail string, InternalDate string, EmailReceiver st
 								Address = strings.Replace(Address, "</div>", "", -1)
 								Address = strings.Replace(Address, "<", "", -1)
 								Address = strings.Replace(Address, ">", "", -1)
-								Address = stripSpaces(Address)[2:]
+								Address = stripSpaces(Address)
 							}
 						}
 					}
