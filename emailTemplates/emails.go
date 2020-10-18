@@ -618,7 +618,9 @@ func GetNewOrderReport(creditEmail string, InternalDate string, EmailReceiver st
 								Address = strings.Replace(Address, "</div>", "", -1)
 								Address = strings.Replace(Address, "<", "", -1)
 								Address = strings.Replace(Address, ">", "", -1)
-								Address = stripSpaces(Address)
+								if len(Address) > 5 {
+									Address = stripSpaces(Address)[2:]
+								}
 							}
 						}
 					}
@@ -726,6 +728,71 @@ func GetNewOrderReport(creditEmail string, InternalDate string, EmailReceiver st
 	row = append(row, Quantity)
 	row = append(row, ItemTotal)
 	row = append(row, ItemName)
+	return row
+}
+
+func GetCashBackReport(creditEmail string, InternalDate string, EmailReceiver string) []interface{} {
+	var row []interface{}
+	loc, _ := time.LoadLocation("America/Bogota")
+	currentTime := time.Now().In(loc)
+	row = append(row, currentTime.Format("2006-01-02 15:04:05"))
+	OrderNumber := ""
+	DateOfPurchase := ""
+	Store := ""
+	CashBack := ""
+	// fmt.Println(creditEmail)
+
+	StartIndex := strings.Index(creditEmail, "Your order details:")
+	if StartIndex != -1 {
+		EndIndex := strings.Index(creditEmail[StartIndex+len("Your order details:"):], "<p style")
+		if EndIndex != -1 {
+			Substring := creditEmail[StartIndex+len("Your order details:") : StartIndex+EndIndex]
+			OrderNumberStartIndex := strings.Index(Substring, "Order ID:")
+			if OrderNumberStartIndex != -1 {
+				OrderNumberEndIndex := strings.Index(Substring[OrderNumberStartIndex:], "<br>")
+				if OrderNumberEndIndex != -1 {
+					OrderNumber = Substring[OrderNumberStartIndex+len("Order ID:") : OrderNumberStartIndex+OrderNumberEndIndex]
+					OrderNumber = strings.Replace(OrderNumber, "</b> ", "", -1)
+				}
+			}
+			DateOfPurchaseStartIndex := strings.Index(Substring, "Date of Purchase:")
+			if DateOfPurchaseStartIndex != -1 {
+				DateOfPurchaseEndIndex := strings.Index(Substring[DateOfPurchaseStartIndex:], "<br>")
+				if DateOfPurchaseEndIndex != -1 {
+					DateOfPurchase = Substring[DateOfPurchaseStartIndex+len("Date of Purchase:") : DateOfPurchaseStartIndex+DateOfPurchaseEndIndex]
+					DateOfPurchase = strings.Replace(DateOfPurchase, "</b> ", "", -1)
+				}
+			}
+			StoreStartIndex := strings.Index(Substring, "Store:")
+			if StoreStartIndex != -1 {
+				StoreEndIndex := strings.Index(Substring[StoreStartIndex:], "<br>")
+				if StoreEndIndex != -1 {
+					Store = Substring[StoreStartIndex+len("Store:") : StoreStartIndex+StoreEndIndex]
+					Store = strings.Replace(Store, "</b> ", "", -1)
+				}
+			}
+			CashBackStartIndex := strings.Index(Substring, "Cash Back Pending:")
+			if CashBackStartIndex != -1 {
+				CashBackEndIndex := strings.Index(Substring[CashBackStartIndex:], "</p>")
+				if CashBackEndIndex != -1 {
+					CashBack = Substring[CashBackStartIndex+len("Cash Back Pending:") : CashBackStartIndex+CashBackEndIndex]
+					CashBack = strings.Replace(CashBack, "</b> ", "", -1)
+				}
+			}
+
+		}
+	}
+
+	row = append(row, stripSpaces(OrderNumber))
+	row = append(row, EmailReceiver)
+	if len(InternalDate) > 10 {
+		row = append(row, InternalDate[0:10])
+	} else {
+		row = append(row, InternalDate)
+	}
+	row = append(row, DateOfPurchase)
+	row = append(row, Store)
+	row = append(row, CashBack)
 	return row
 }
 

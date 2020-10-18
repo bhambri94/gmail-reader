@@ -97,8 +97,11 @@ func handleDynamicGmailSearch(ctx *fasthttp.RequestCtx) {
 		header = []string{"EmailWorkflow_Refresh_time", "Internet Number", "Order Number", "To Email Address", "Amount Total", "Order Date", "Email Received Date", "Store SKU", "Quantity"}
 		CSVName = "ReturnedOrdersCSV_" + currentTime.Format("2006-01-02 15:04:05") + ".csv"
 	} else if strings.Contains(SearchQuery.(string), "received your order") {
-		header = []string{"EmailWorkflow_Refresh_time", "Internet Number", "Order Number", "To Email Address", "Amount Credit", "New Order Date", "Store SKU", "Address", "Quantity", "Item Total", "Item Name"}
+		header = []string{"EmailWorkflow_Refresh_time", "Internet Number", "Order Number", "To Email Address", "Amount Credit", "New Order Date", "Store SKU", "Address", "Estimated Arrival", "Quantity", "Item Total", "Item Name"}
 		CSVName = "NewOrdersCSV_" + currentTime.Format("2006-01-02 15:04:05") + ".csv"
+	} else if strings.Contains(SearchQuery.(string), "Cash Back") {
+		header = []string{"EmailWorkflow_Refresh_time", "Order Number", "To Email Address", "Email Received Timestamp", "Date Of Purchase", "Store", "CashBack Amount"}
+		CSVName = "CashBackCSV_" + currentTime.Format("2006-01-02 15:04:05") + ".csv"
 	}
 
 	f, err := os.Create(CSVName)
