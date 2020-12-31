@@ -678,31 +678,41 @@ func GetNewOrderReport(creditEmail string, InternalDate string, EmailReceiver st
 
 		// Unit Price
 		ItemNameCreditEmail := creditEmail[ParentItemNameStartIndex:]
-		ItemNameStartIndex := strings.Index(ItemNameCreditEmail, "<table> <tr> <td style")
+		ItemNameStartIndex := strings.Index(ItemNameCreditEmail, "<table>")
 		if ItemNameStartIndex != -1 {
 			ParentItemNameStartIndex = ItemNameStartIndex + 20
-			ItemNameEndIndex := strings.Index(ItemNameCreditEmail[ItemNameStartIndex:], "<br />")
+			ItemNameEndIndex := strings.Index(ItemNameCreditEmail[ItemNameStartIndex:], "<br/>")
 			if ItemNameEndIndex != -1 {
-				SubString3 := ItemNameCreditEmail[ItemNameStartIndex+len("<table> <tr> <td style") : ItemNameStartIndex+ItemNameEndIndex+10]
-				fmt.Println(SubString3)
+				SubString3 := ItemNameCreditEmail[ItemNameStartIndex+len("<table>") : ItemNameStartIndex+ItemNameEndIndex+10]
 				ItemNameStartIndex = strings.Index(SubString3, "<a href=http://link.order.homedepot.com")
 				if ItemNameStartIndex != -1 {
-					ItemNameEndIndex = strings.Index(SubString3[ItemNameStartIndex:], "<br />")
+					ItemNameEndIndex = strings.Index(SubString3[ItemNameStartIndex:], "<br/>")
 					if ItemNameEndIndex != -1 {
 						SubString := SubString3[ItemNameStartIndex+len("<a href=http://link.order.homedepot.com") : ItemNameStartIndex+ItemNameEndIndex+10]
 						ItemNameStartIndex = strings.Index(SubString, "<a href=http://link.order.homedepot.com")
 						if ItemNameStartIndex != -1 {
-							ItemNameEndIndex = strings.Index(SubString[ItemNameStartIndex:], "<br />")
+							ItemNameEndIndex = strings.Index(SubString[ItemNameStartIndex:], "<br/>")
 							if ItemNameEndIndex != -1 {
 								SubString2 := SubString[ItemNameStartIndex+len("<a href=http://link.order.homedepot.com") : ItemNameStartIndex+ItemNameEndIndex+6]
 								ItemNameStartIndex = strings.Index(SubString2, "_blank")
 								if ItemNameStartIndex != -1 {
-									ItemNameEndIndex = strings.Index(SubString2[ItemNameStartIndex:], "<br />")
+									ItemNameEndIndex = strings.Index(SubString2[ItemNameStartIndex:], "<br/>")
 									if ItemNameEndIndex != -1 {
 										ItemName = SubString2[ItemNameStartIndex+len("_blank")+2 : ItemNameStartIndex+ItemNameEndIndex]
-										ItemName = stripSpaces(ItemName)
 										ItemName = strings.Replace(ItemName, "</a></span>", "", -1)
-
+										ItemName = strings.Replace(ItemName, "color:#333;text-decoration:none;", "", -1)
+										ItemName = strings.Replace(ItemName, "style=", "", -1)
+										ItemName = strings.Replace(ItemName, "</span>", "", -1)
+										ItemName = strings.Replace(ItemName, "</a>", "", -1)
+										ItemName = strings.Replace(ItemName, "<b>", "", -1)
+										ItemName = strings.Replace(ItemName, ">", "", -1)
+										ItemName = strings.Replace(ItemName, "</b", "", -1)
+										ItemName = strings.Replace(ItemName, "\"", "", -1)
+										ItemName = strings.Trim(ItemName, " ")
+										ItemName = strings.Trim(ItemName, "\t")
+										ItemName = strings.Trim(ItemName, "\n")
+										ItemName = strings.Trim(ItemName, "                                                                                                                               ")
+										fmt.Println(ItemName)
 									}
 								}
 							}
